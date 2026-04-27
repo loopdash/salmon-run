@@ -322,7 +322,9 @@ canvas {
   font-size: 22px;
   opacity: 0.92;
 }
-#bubble-canvas, #bubble-canvas-win, #bubble-canvas-end {
+#bubble-canvas,
+#bubble-canvas-win,
+#bubble-canvas-end {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -364,7 +366,7 @@ canvas {
   font-family: "Jersey 10";
   font-weight: 400;
   font-size: 1rem;
-    max-width: 80%;
+  max-width: 80%;
   letter-spacing: 2%;
   text-align: center;
   vertical-align: middle;
@@ -384,7 +386,7 @@ canvas {
   font-size: 1.5rem;
   border: none;
   min-width: 100%;
-    color: #42425f;
+  color: #42425f;
 }
 
 .button-div {
