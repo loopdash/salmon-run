@@ -70,6 +70,7 @@
         <button class="btn btn-learn" id="btn-learn">Learn More</button>
       </a>
       </div>
+            <canvas id="bubble-canvas-end"></canvas>
     </div>
 
     <!-- ── Win Screen ── -->
@@ -104,6 +105,7 @@
           </button></a
         >
         </div>
+              <canvas id="bubble-canvas-win"></canvas>
     </div>
 
     <script>
@@ -116,7 +118,7 @@
       ];
 
       const NET_FACTS = [
-        "Mary Peltola is fighting to ban bottom trawling to save salmon like you",
+        "Mary Peltola is fighting to ban bottom trawling to save salmon like you.",
       ];
 
       const screens = {
@@ -251,6 +253,7 @@
 
       const GROUND_Y = () => Math.round(GAME_H * 0.88);
 
+      //  BUBBLES MAIN
       const bubbleCanvas = document.getElementById("bubble-canvas");
       const bCtx = bubbleCanvas.getContext("2d");
 
@@ -323,6 +326,141 @@
       }
 
       animateBubbles();
+
+      //  BUBBLES WIN
+      const bubbleCanvasWin = document.getElementById("bubble-canvas-win");
+      const bCtxWin = bubbleCanvasWin.getContext("2d");
+      let bubblesWin = [];
+
+      function resizeBubbleCanvasWin() {
+        bubbleCanvasWin.width = window.innerWidth;
+        bubbleCanvasWin.height = window.innerHeight;
+      }
+      resizeBubbleCanvasWin();
+      window.addEventListener("resize", resizeBubbleCanvasWin);
+
+      function randomBubbleWin() {
+        const big = Math.random() > 0.5;
+        const size = big ? 60 + Math.random() * 30 : 30 + Math.random() * 20;
+        const speed = 0.4 + Math.random() * 0.6;
+        const angle = Math.random() * Math.PI * 2;
+        return {
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size,
+          img: bubbleImgs[big ? 0 : 1],
+          opacity: 0.6 + Math.random() * 0.4,
+        };
+      }
+
+      for (let i = 0; i < BUBBLE_COUNT; i++) bubblesWin.push(randomBubbleWin());
+
+      function animateBubblesWin() {
+        if (
+          !document.getElementById("win-screen").classList.contains("active")
+        ) {
+          requestAnimationFrame(animateBubblesWin);
+          return;
+        }
+
+        bCtxWin.clearRect(0, 0, bubbleCanvasWin.width, bubbleCanvasWin.height);
+
+        for (const b of bubblesWin) {
+          b.x += b.vx;
+          b.y += b.vy;
+
+          if (b.x - b.size / 2 < 0 || b.x + b.size / 2 > bubbleCanvasWin.width)
+            b.vx *= -1;
+          if (b.y - b.size / 2 < 0 || b.y + b.size / 2 > bubbleCanvasWin.height)
+            b.vy *= -1;
+
+          if (b.img.complete && b.img.naturalWidth > 0) {
+            bCtxWin.globalAlpha = b.opacity;
+            bCtxWin.drawImage(
+              b.img,
+              b.x - b.size / 2,
+              b.y - b.size / 2,
+              b.size,
+              b.size,
+            );
+            bCtxWin.globalAlpha = 1;
+          }
+        }
+
+        requestAnimationFrame(animateBubblesWin);
+      }
+
+      animateBubblesWin();
+
+      //  BUBBLES END
+      const bubbleCanvasEnd = document.getElementById("bubble-canvas-end");
+      const bCtxEnd = bubbleCanvasEnd.getContext("2d");
+      let bubblesEnd = [];
+
+      function resizeBubbleCanvasEnd() {
+        bubbleCanvasEnd.width = window.innerWidth;
+        bubbleCanvasEnd.height = window.innerHeight;
+      }
+      resizeBubbleCanvasEnd();
+      window.addEventListener("resize", resizeBubbleCanvasEnd);
+
+      function randomBubbleEnd() {
+        const big = Math.random() > 0.5;
+        const size = big ? 60 + Math.random() * 30 : 30 + Math.random() * 20;
+        const speed = 0.4 + Math.random() * 0.6;
+        const angle = Math.random() * Math.PI * 2;
+        return {
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size,
+          img: bubbleImgs[big ? 0 : 1],
+          opacity: 0.6 + Math.random() * 0.4,
+        };
+      }
+
+      for (let i = 0; i < BUBBLE_COUNT; i++) bubblesEnd.push(randomBubbleEnd());
+
+      function animateBubblesEnd() {
+        if (
+          !document.getElementById("end-screen").classList.contains("active")
+        ) {
+          requestAnimationFrame(animateBubblesEnd);
+          return;
+        }
+
+        bCtxEnd.clearRect(0, 0, bubbleCanvasEnd.width, bubbleCanvasEnd.height);
+
+        for (const b of bubblesEnd) {
+          b.x += b.vx;
+          b.y += b.vy;
+
+          if (b.x - b.size / 2 < 0 || b.x + b.size / 2 > bubbleCanvasEnd.width)
+            b.vx *= -1;
+          if (b.y - b.size / 2 < 0 || b.y + b.size / 2 > bubbleCanvasEnd.height)
+            b.vy *= -1;
+
+          if (b.img.complete && b.img.naturalWidth > 0) {
+            bCtxEnd.globalAlpha = b.opacity;
+            bCtxEnd.drawImage(
+              b.img,
+              b.x - b.size / 2,
+              b.y - b.size / 2,
+              b.size,
+              b.size,
+            );
+            bCtxEnd.globalAlpha = 1;
+          }
+        }
+
+        requestAnimationFrame(animateBubblesEnd);
+      }
+
+      animateBubblesEnd();
+
 
       function drawBackground() {
         if (skyImg.complete && skyImg.naturalWidth > 0) {
@@ -724,11 +862,11 @@
         if (deathReason === "trash") {
           const name =
             deathImgIdx !== null ? TRASH_NAMES[deathImgIdx] : "a predator";
-          fact = `You fed ${name}, but at least you're not bycatch. Play again!`;
+          fact = `You fed ${name}, but at least you're not bycatch. </br> Play again!`;
           document.querySelector(".end-title").textContent = "YOU’RE DINNER";
         } else if (deathReason === "dead") {
           const name =
-            (fact = `You're busted, but at least you're not bycatch. Play again!`);
+            (fact = `You're busted, but at least you're not bycatch. </br>Play again!`);
           document.querySelector(".end-title").textContent = "Game Over";
         } else if (deathReason === "net") {
           fact = NET_FACTS[Math.floor(Math.random() * NET_FACTS.length)];
@@ -738,7 +876,7 @@
           fact = END_FACTS[Math.floor(Math.random() * END_FACTS.length)];
         }
 
-        document.querySelector(".info-placeholder").textContent = fact;
+        document.querySelector(".info-placeholder").innerHTML = fact;
 
         setTimeout(() => showScreen("end"), 600);
       }

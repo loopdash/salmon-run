@@ -322,7 +322,7 @@ canvas {
   font-size: 22px;
   opacity: 0.92;
 }
-#bubble-canvas {
+#bubble-canvas, #bubble-canvas-win, #bubble-canvas-end {
   position: absolute;
   inset: 0;
   width: 100%;
