@@ -97,20 +97,6 @@ body {
     line-height: 48px;
     max-width: 80%;
   }
-
-  .side-by-side {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  .side-by-side .btn-copy,
-  .side-by-side .btn-learn {
-    font-size: 0.95rem;
-    padding: 7px 14px;
-    color: black;
-  }
 }
 
 @media (max-width: 480px) {
@@ -144,6 +130,7 @@ body {
   transition:
     transform 0.1s,
     box-shadow 0.1s;
+  text-transform: uppercase;
 }
 
 .btn:active {
@@ -250,11 +237,12 @@ canvas {
   align-items: center;
   gap: 12px;
   width: min(320px, 88vw);
-  border: 3px solid white;
   outline: 3px solid black;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
 
   font-family: "Jersey 10", sans-serif;
+
+  box-shadow: -8px 8px 0px 0px #00000040;
 }
 
 .end-title {
@@ -263,13 +251,21 @@ canvas {
   color: #ff8d74;
   text-align: center;
   text-shadow: 2px 2px 0px #f22f33;
+  letter-spacing: 1px;
 }
 
 .score-label {
-  font-size: 0.95rem;
-  color: #666;
+  font-size: 1rem;
+  color: #c0c1c6;
   text-transform: uppercase;
-  letter-spacing: 1px;
+
+  font-family: "Jersey 10";
+  font-weight: 400;
+  font-style: Regular;
+
+  letter-spacing: 2%;
+  text-align: center;
+  vertical-align: middle;
 }
 
 #countdown-display {
@@ -365,53 +361,39 @@ canvas {
 }
 
 .info-placeholder {
-  background: rgba(255, 215, 0, 0.3);
-  border: 3px dashed gold;
-  display: flex;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.6rem;
-  color: #9a7000;
-  padding: 10px;
+  font-family: "Jersey 10";
+  font-weight: 400;
   font-size: 1rem;
-  line-height: 1.35;
-  color: black;
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  z-index: 10;
-  opacity: 1;
-  transition: opacity 0.4s ease;
-  border: 1px solid #000000;
-  font-family: "DM Mono", monospace;
-  font-weight: 500;
-  font-style: Medium;
-  line-height: 100%;
+
   letter-spacing: 2%;
-
+  text-align: center;
   vertical-align: middle;
+  color: #42425f;
 }
 
-.side-by-side {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.side-by-side .btn-copy,
-.side-by-side .btn-learn {
-  font-size: 1.2rem;
-  padding: 7px 14px;
-  color: black;
-}
 .btn-restart {
   background: #f22f33;
   color: white;
   font-size: 1.5rem;
+  text-shadow: 0px 3px 0px #84291b;
+  min-width: 100%;
 }
 
 .btn-copy,
 .btn-learn {
   font-size: 1.5rem;
+  border: none;
+  min-width: 100%;
+}
+
+.button-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(280px, 88vw);
+  justify-content: center;
+}
+.button-div a {
+  min-width: 100%;
 }

@@ -47,31 +47,28 @@
       <div class="end-panel">
         <div class="end-title">You got caught</div>
         <div class="info-placeholder">Fun Facts</div>
-        <div class="divider"></div>
         <div class="score-label">Score</div>
         <div class="best-value" id="final-score">0</div>
       </div>
+            <div class="button-div">
       <button class="btn btn-restart" id="btn-restart">Play Again</button>
-      <div class="side-by-side">
-        <a href="http://salmonrun.marypeltola.com/" class="a-tag">
-          <button
-            class="btn btn-copy"
-            id="btn-copy"
-            onclick="
-              navigator.clipboard.writeText(
-                `https://salmonrun.marypeltola.com/`,
-              );
-              this.textContent = 'Copied!';
-              setTimeout(() => (this.textContent = 'Share Link'), 2000);
-              event.preventDefault();
-            "
-          >
-            Share Link
-          </button>
-        </a>
-        <a href="https://marypeltola.com/" class="a-tag">
-          <button class="btn btn-learn" id="btn-learn">Learn More</button>
-        </a>
+      <a href="http://salmonrun.marypeltola.com/" class="a-tag">
+        <button
+          class="btn btn-copy"
+          id="btn-copy"
+          onclick="
+            navigator.clipboard.writeText(`https://salmonrun.marypeltola.com/`);
+            this.textContent = 'Copied!';
+            setTimeout(() => (this.textContent = 'Share Link'), 2000);
+            event.preventDefault();
+          "
+        >
+          Share Link
+        </button>
+      </a>
+      <a href="https://marypeltola.com/" class="a-tag">
+        <button class="btn btn-learn" id="btn-learn">Learn More</button>
+      </a>
       </div>
     </div>
 
@@ -80,12 +77,11 @@
       <div class="end-panel">
         <div class="end-title">YOU MADE IT HOME!</div>
         <div class="info-placeholder" id="win-fact"></div>
-        <div class="divider"></div>
         <div class="score-label">Score</div>
         <div class="best-value" id="win-final-score">0</div>
       </div>
+      <div class="button-div">
       <button class="btn btn-restart" id="btn-restart-win">Play Again</button>
-      <div class="side-by-side">
         <a href="https://salmonrun.marypeltola.com/" class="a-tag">
           <button
             class="btn btn-copy"
@@ -107,7 +103,7 @@
             Learn More
           </button></a
         >
-      </div>
+        </div>
     </div>
 
     <script>
@@ -733,7 +729,7 @@
         } else if (deathReason === "dead") {
           const name =
             (fact = `You're busted, but at least you're not bycatch. Play again!`);
-          document.querySelector(".end-title").textContent = "GAME OVER";
+          document.querySelector(".end-title").textContent = "Game Over";
         } else if (deathReason === "net") {
           fact = NET_FACTS[Math.floor(Math.random() * NET_FACTS.length)];
           document.querySelector(".end-title").textContent =
