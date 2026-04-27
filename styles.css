@@ -384,6 +384,7 @@ canvas {
   font-size: 1.5rem;
   border: none;
   min-width: 100%;
+    color: #42425f;
 }
 
 .button-div {
