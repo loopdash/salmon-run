@@ -389,6 +389,11 @@ canvas {
   color: #42425f;
 }
 
+.btn-copy a:link,
+.btn-learn a:link {
+  color: #42425f;
+}
+
 .button-div {
   display: flex;
   flex-direction: column;
