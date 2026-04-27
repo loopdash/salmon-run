@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Salmon Run</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ── Start Screen ── -->
+    <div id="start-screen" class="screen active">
+      <div class="logo-div">
+        <img src="logo.png" class="logo-child" />
+      </div>
+      <p class="tap-hint">Dodge nets, outswim the bottom trawlers!</p>
+      <button class="btn btn-start" id="btn-start">Play</button>
+      <canvas id="bubble-canvas"></canvas>
+    </div>
+
+    <!-- ── Game Screen ── -->
+    <div id="game-screen" class="screen">
+      <div id="info-display">
+        <div class="fun-fact-label">FUN FACT!</div>
+        <div id="fun-fact"></div>
+      </div>
+      <div id="score-display"></div>
+      <div id="countdown-display"></div>
+      <div id="finish-ribbon">
+        <div class="ribbon-emoji-row">🎉🏆🎉🏆🎉🏆🎉</div>
+        <div class="ribbon-tape">
+          🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊
+        </div>
+        <div class="ribbon-label">FINISH</div>
+        <div class="ribbon-tape">
+          🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊&nbsp;&nbsp;🎊
+        </div>
+        <div class="ribbon-emoji-row">🌊🐟🌊🐟🌊🐟🌊</div>
+      </div>
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- ── End Screen (caught) ── -->
+    <div id="end-screen" class="screen">
+      <div class="end-panel">
+        <div class="end-title">You got caught</div>
+        <div class="info-placeholder">Fun Facts</div>
+        <div class="divider"></div>
+        <div class="score-label">Score</div>
+        <div class="best-value" id="final-score">0</div>
+      </div>
+      <button class="btn btn-restart" id="btn-restart">Play Again</button>
+      <div class="side-by-side">
+        <a href="http://salmonrun.marypeltola.com/" class="a-tag">
+          <button
+            class="btn btn-copy"
+            id="btn-copy"
+            onclick="
+              navigator.clipboard.writeText(
+                `https://salmonrun.marypeltola.com/`,
+              );
+              this.textContent = 'Copied!';
+              setTimeout(() => (this.textContent = 'Share Link'), 2000);
+              event.preventDefault();
+            "
+          >
+            Share Link
+          </button>
+        </a>
+        <a href="https://marypeltola.com/" class="a-tag">
+          <button class="btn btn-learn" id="btn-learn">Learn More</button>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Win Screen ── -->
+    <div id="win-screen" class="screen">
+      <div class="end-panel">
+        <div class="end-title">YOU MADE IT HOME!</div>
+        <div class="info-placeholder" id="win-fact"></div>
+        <div class="divider"></div>
+        <div class="score-label">Score</div>
+        <div class="best-value" id="win-final-score">0</div>
+      </div>
+      <button class="btn btn-restart" id="btn-restart-win">Play Again</button>
+      <div class="side-by-side">
+        <a href="https://salmonrun.marypeltola.com/" class="a-tag">
+          <button
+            class="btn btn-copy"
+            id="btn-copy-win"
+            onclick="
+              navigator.clipboard.writeText(
+                `https://salmonrun.marypeltola.com/`,
+              );
+              this.textContent = 'Copied!';
+              setTimeout(() => (this.textContent = 'Share Link'), 2000);
+              event.preventDefault();
+            "
+          >
+            Share Link
+          </button>
+        </a>
+        <a href="https://marypeltola.com/" class="a-tag">
+          <button class="btn btn-learn" id="btn-learn-win">
+            Learn More
+          </button></a
+        >
+      </div>
+    </div>
+
+    <script>
+      const END_FACTS = [
+        "Mary Peltola is fighting to save salmon like you from bottom trawlers",
+      ];
+
+      const TRASH_FACTS = [
+        "You fed an [ANIMAL NAME], but at least you’re not bycatch. Play again!",
+      ];
+
+      const NET_FACTS = [
+        "Mary Peltola is fighting to ban bottom trawling to save salmon like you",
+      ];
+
+      const screens = {
+        start: document.getElementById("start-screen"),
+        game: document.getElementById("game-screen"),
+        end: document.getElementById("end-screen"),
+        win: document.getElementById("win-screen"),
+      };
+
+      function showScreen(name) {
+        Object.values(screens).forEach((s) => s.classList.remove("active"));
+        screens[name].classList.add("active");
+      }
+
+      const canvas = document.getElementById("game-canvas");
+      const ctx = canvas.getContext("2d");
+      let GAME_W = window.innerWidth;
+      let GAME_H = window.innerHeight;
+
+      let deathImgIdx = null;
+
+      const TRASH_NAMES = ["an orca", "a salmon shark"];
+
+      function resizeCanvas() {
+        GAME_W = window.innerWidth;
+        GAME_H = window.innerHeight;
+        canvas.width = GAME_W;
+        canvas.height = GAME_H;
+        canvas.style.width = `${GAME_W}px`;
+        canvas.style.height = `${GAME_H}px`;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      const GRAVITY = 0.2;
+      const FLAP_VEL = -5;
+      const PIPE_SPEED = 3;
+      const PIPE_WIDTH = 52;
+      const PIPE_SPAWN_X = () => GAME_W + 60;
+      const BOAT_INTERVAL = 180;
+      const NET_H = 75;
+      const BOAT_W = 250;
+      const BOAT_H = 160;
+      const OCEAN_TOP = () => BOAT_H;
+      const TRASH_W = 100;
+      const TRASH_H = 80;
+      // Seconds until first trash
+      const TRASH_INTERVAL = 100;
+      const SALMON = "./salmon.png";
+      const GAME_RUNTIME = 30;
+
+      // How many seconds before end the ribbon scrolls on
+      const RIBBON_LEAD = 4;
+      // Width of the ribbon "gate" in canvas pixels
+      const RIBBON_W = 18;
+
+      const COLOR = {
+        ground: "#c8a96e",
+        net: "#5ec25e",
+        netBorder: "#3a8a3a",
+      };
+
+      const FACTS = [
+        "Every year, millions of fish & crab are killed as bycatch",
+        "More halibut is killed as bycatch than consumed",
+        "Bottom trawlers destroy 580 miles of seabed every day",
+        "Trawlers have killed 1 million lbs of halibut this year",
+        "Trawlers kill 141 million lbs of marine life each year",
+        "Last year, almost $200 million salmon were caught in AK",
+        "Salmon sharks can reach up to 600lbs",
+      ];
+
+      const infoEl = document.getElementById("fun-fact");
+
+      let infoTimeout,
+        infoQueue = [],
+        infoIndex = 0;
+
+      function startInfoRotation() {
+        infoQueue = [...FACTS].sort(() => Math.random() - 0.5);
+        infoIndex = 0;
+        showNextFact();
+      }
+      function showNextFact() {
+        infoEl.classList.add("fade");
+        infoTimeout = setTimeout(() => {
+          infoEl.textContent = infoQueue[infoIndex % infoQueue.length];
+          infoEl.classList.remove("fade");
+          infoIndex++;
+          infoTimeout = setTimeout(showNextFact, 5000);
+        }, 400);
+      }
+      function stopInfoRotation() {
+        clearTimeout(infoTimeout);
+        // Hide it when game ends
+        infoEl.classList.add("fade");
+      }
+
+      let state,
+        fish,
+        nets,
+        trashItems,
+        ribbon,
+        score,
+        frame,
+        gameStartTime,
+        lastRemainingTick,
+        bestScore = 0;
+
+      function resetGame() {
+        state = "countdown";
+        fish = { x: 80, y: GAME_H / 2 - 20, vy: 0, w: 70, h: 42, angle: 0 };
+        nets = [];
+        trashItems = [];
+        ribbon = null; // spawned later
+        score = 0;
+        frame = Math.max(BOAT_INTERVAL, TRASH_INTERVAL) - 1;
+        gameStartTime = null;
+        lastRemainingTick = null;
+        document.getElementById("score-display").textContent = "0";
+        stopInfoRotation();
+        startInfoRotation();
+      }
+
+      function flap() {
+        if (state === "running") fish.vy = FLAP_VEL;
+      }
+      canvas.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        flap();
+      });
+
+      const GROUND_Y = () => Math.round(GAME_H * 0.88);
+
+      const bubbleCanvas = document.getElementById("bubble-canvas");
+      const bCtx = bubbleCanvas.getContext("2d");
+
+      const bubbleImgs = [new Image(), new Image()];
+      bubbleImgs[0].src = "./bubble.png";
+      bubbleImgs[1].src = "./bubble-small.png";
+
+      const BUBBLE_COUNT = 4;
+      let bubbles = [];
+
+      function resizeBubbleCanvas() {
+        bubbleCanvas.width = window.innerWidth;
+        bubbleCanvas.height = window.innerHeight;
+      }
+      resizeBubbleCanvas();
+      window.addEventListener("resize", resizeBubbleCanvas);
+
+      function randomBubble() {
+        const big = Math.random() > 0.5;
+        const size = big ? 60 + Math.random() * 30 : 30 + Math.random() * 20;
+        const speed = 0.4 + Math.random() * 0.6;
+        const angle = Math.random() * Math.PI * 2;
+        return {
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size,
+          img: bubbleImgs[big ? 0 : 1],
+          opacity: 0.6 + Math.random() * 0.4,
+        };
+      }
+
+      for (let i = 0; i < BUBBLE_COUNT; i++) bubbles.push(randomBubble());
+
+      function animateBubbles() {
+        if (
+          !document.getElementById("start-screen").classList.contains("active")
+        ) {
+          requestAnimationFrame(animateBubbles);
+          return;
+        }
+
+        bCtx.clearRect(0, 0, bubbleCanvas.width, bubbleCanvas.height);
+
+        for (const b of bubbles) {
+          b.x += b.vx;
+          b.y += b.vy;
+
+          // bounce off edges
+          if (b.x - b.size / 2 < 0 || b.x + b.size / 2 > bubbleCanvas.width)
+            b.vx *= -1;
+          if (b.y - b.size / 2 < 0 || b.y + b.size / 2 > bubbleCanvas.height)
+            b.vy *= -1;
+
+          if (b.img.complete && b.img.naturalWidth > 0) {
+            bCtx.globalAlpha = b.opacity;
+            bCtx.drawImage(
+              b.img,
+              b.x - b.size / 2,
+              b.y - b.size / 2,
+              b.size,
+              b.size,
+            );
+            bCtx.globalAlpha = 1;
+          }
+        }
+
+        requestAnimationFrame(animateBubbles);
+      }
+
+      animateBubbles();
+
+      function drawBackground() {
+        if (skyImg.complete && skyImg.naturalWidth > 0) {
+          ctx.drawImage(skyImg, 0, 0, GAME_W, OCEAN_TOP());
+        } else {
+          ctx.fillRect(0, 0, GAME_W, OCEAN_TOP());
+        }
+        const oceanTop = OCEAN_TOP();
+        const oceanH = GROUND_Y() - oceanTop;
+        if (oceanImg.complete && oceanImg.naturalWidth > 0) {
+          ctx.drawImage(oceanImg, 0, oceanTop, GAME_W, oceanH);
+        } else {
+          ctx.fillStyle = "#82c9e7";
+          ctx.fillRect(0, oceanTop, GAME_W, oceanH);
+        }
+        if (seaFloorImg.complete && seaFloorImg.naturalWidth > 0) {
+          ctx.drawImage(
+            seaFloorImg,
+            0,
+            GROUND_Y(),
+            GAME_W,
+            GAME_H - GROUND_Y(),
+          );
+        } else {
+          ctx.fillStyle = COLOR.ground;
+          ctx.fillRect(0, GROUND_Y(), GAME_W, GAME_H - GROUND_Y());
+        }
+      }
+
+      const netImg = new Image();
+      netImg.src = "./net.png";
+
+      function drawNet(net) {
+        const boatX = net.x + PIPE_WIDTH / 2 - BOAT_W / 2;
+        const boatY = net.topH - BOAT_H;
+
+        const WIRE_IMG_OFFSET = 55;
+        const wireX = net.x + PIPE_WIDTH / 2 + WIRE_IMG_OFFSET;
+        const wireVisible = !ribbon || wireX < ribbon.x;
+
+        const BOAT_IMG_OFFSET = 130;
+        let netDrawX = null;
+
+        if (netImg.complete && netImg.naturalWidth > 0) {
+          const drawW = NET_H * (netImg.naturalWidth / netImg.naturalHeight);
+          const dx = boatX + BOAT_W / 2 - drawW / 2 + BOAT_IMG_OFFSET;
+          if (!ribbon || dx < ribbon.x) netDrawX = { dx, drawW };
+        }
+
+        if (!wireVisible && !netDrawX) return;
+
+        const boatImg = boatImgs[net.imgIdx ?? 0];
+        if (boatImg.complete && boatImg.naturalWidth > 0) {
+          ctx.drawImage(boatImg, boatX, boatY, BOAT_W, BOAT_H);
+        } else {
+          ctx.fillStyle = COLOR.net;
+          ctx.fillRect(net.x - 4, boatY, PIPE_WIDTH + 8, BOAT_H);
+        }
+
+        if (wireVisible) {
+          ctx.beginPath();
+          ctx.moveTo(wireX, net.topH);
+          ctx.lineTo(wireX, GROUND_Y() - NET_H);
+          ctx.strokeStyle = "#aaaaaa";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        if (netDrawX) {
+          const jiggle = Math.sin(frame * 0.08 + net.x * 0.04) * 3;
+          ctx.drawImage(
+            netImg,
+            netDrawX.dx,
+            GROUND_Y() - NET_H + jiggle,
+            netDrawX.drawW,
+            NET_H,
+          );
+        }
+      }
+
+      // ── Ribbon drawing ────────────────────────────────────────────────────────────
+      // Emoji string pre-built for the vertical stack
+      const RIBBON_EMOJIS = ["🎉", "🏆", "🎊", "🥇", "🎊", "🏆", "🎉"];
+      const RIBBON_EMOJI_SIZE = 28;
+      const RIBBON_EMOJI_GAP = 8;
+
+      function drawRibbon(r) {
+        if (!r) return;
+        const top = OCEAN_TOP();
+        const bottom = GROUND_Y() - NET_H;
+        const height = bottom - top;
+        const cx = r.x + RIBBON_W / 2;
+
+        // Alternating red/white stripe bar
+        const stripeH = 12;
+        const stripes = Math.ceil(height / stripeH);
+        for (let i = 0; i < stripes; i++) {
+          ctx.fillStyle = i % 2 === 0 ? "#e63946" : "#ffffff";
+          ctx.fillRect(r.x, top + i * stripeH, RIBBON_W, stripeH);
+        }
+
+        // Vertical stack of emojis centered on the ribbon
+        ctx.font = `${RIBBON_EMOJI_SIZE}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const totalEmojiH =
+          RIBBON_EMOJIS.length * (RIBBON_EMOJI_SIZE + RIBBON_EMOJI_GAP);
+        const startY = top + (height - totalEmojiH) / 2 + RIBBON_EMOJI_SIZE / 2;
+        for (let i = 0; i < RIBBON_EMOJIS.length; i++) {
+          const ey = startY + i * (RIBBON_EMOJI_SIZE + RIBBON_EMOJI_GAP);
+          if (ey > top && ey < bottom) {
+            ctx.fillText(RIBBON_EMOJIS[i], cx, ey);
+          }
+        }
+      }
+
+      let deathReason = null;
+
+      const fishImg = new Image();
+      fishImg.src = SALMON;
+      const seaFloorImg = new Image();
+      seaFloorImg.src = "./sea-floor.png";
+      const skyImg = new Image();
+      skyImg.src = "./sky.png";
+
+      const oceanImg = new Image();
+      oceanImg.src = "./ocean.png";
+
+      const TRASH_SRCS = ["./orca-obstacle.png", "./salmon-shark.png"];
+      const trashImgs = TRASH_SRCS.map((src) => {
+        const i = new Image();
+        i.src = src;
+        return i;
+      });
+
+      const BOAT_SRCS = ["./boat.png", "./boat-wa.png"];
+      const boatImgs = BOAT_SRCS.map((src) => {
+        const i = new Image();
+        i.src = src;
+        return i;
+      });
+
+      function drawFish() {
+        ctx.save();
+        ctx.translate(fish.x + fish.w / 2, fish.y + fish.h / 2);
+        const targetAngle = fish.vy < 0 ? -0.4 : Math.min(fish.vy * 0.07, 1.2);
+        fish.angle += (targetAngle - fish.angle) * 0.15;
+        ctx.rotate(fish.angle);
+        if (fishImg.complete && fishImg.naturalWidth > 0) {
+          ctx.drawImage(fishImg, -fish.w / 2, -fish.h / 2, fish.w, fish.h);
+        } else {
+          ctx.fillStyle = "#f7b731";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, fish.w / 2, fish.h / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawTrashItems() {
+        for (const t of trashItems) {
+          const img = trashImgs[t.imgIdx];
+          const jiggle = Math.sin(frame * 0.08 + t.x * 0.04) * 3;
+          if (img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, t.x, t.y + jiggle, TRASH_W, TRASH_H);
+          } else {
+            ctx.fillStyle = "#8B4513";
+            ctx.fillRect(t.x, t.y + jiggle, TRASH_W, TRASH_H);
+          }
+        }
+      }
+
+      function drawScore() {
+        document.getElementById("score-display").textContent = score;
+      }
+
+      const MARGIN = 30;
+      function checkCollision() {
+        const bx = fish.x + MARGIN,
+          by = fish.y + MARGIN;
+        const bw = fish.w - MARGIN * 2,
+          bh = fish.h - MARGIN * 2;
+
+        // Top = trash
+        if (fish.y <= OCEAN_TOP()) {
+          return { type: "dead" };
+        }
+
+        // Bottom = trash (sea floor, no net involved)
+        if (fish.y + fish.h >= GROUND_Y()) {
+          return { type: "dead" };
+        }
+
+        for (const p of nets) {
+          const inX = bx < p.x + PIPE_WIDTH && bx + bw > p.x;
+
+          // Top pipe
+          if (inX && by < p.topH) return { type: "net", imgIdx: null };
+
+          // Bottom net — offset matches the visual BOAT_IMG_OFFSET used in drawNet
+          const boatCenterX = p.x + PIPE_WIDTH / 2;
+          const netImgW =
+            netImg.naturalWidth > 0
+              ? NET_H * (netImg.naturalWidth / netImg.naturalHeight)
+              : PIPE_WIDTH + 8;
+          const netX = boatCenterX - netImgW / 2 + 130;
+          const netY = GROUND_Y() - NET_H;
+
+          if (bx < netX + netImgW && bx + bw > netX && by + bh > netY) {
+            return { type: "net", imgIdx: null };
+          }
+        }
+
+        for (const t of trashItems) {
+          if (
+            bx < t.x + TRASH_W &&
+            bx + bw > t.x &&
+            by < t.y + TRASH_H &&
+            by + bh > t.y
+          ) {
+            return { type: "trash", imgIdx: t.imgIdx };
+          }
+        }
+
+        return null;
+      }
+
+      function checkRibbonCross() {
+        if (!ribbon) return false;
+        // Fish leading edge just passed the ribbon centre
+        return fish.x + fish.w >= ribbon.x && fish.x <= ribbon.x + RIBBON_W;
+      }
+
+      const countdownEl = document.getElementById("countdown-display");
+      function startCountdown(callback) {
+        let count = 3;
+        function showNumber(text, onDone) {
+          countdownEl.style.transition = "none";
+          countdownEl.style.opacity = "1";
+          countdownEl.style.transform = "translate(-50%, -50%) scale(1.4)";
+          countdownEl.textContent = text;
+          countdownEl.getBoundingClientRect();
+          countdownEl.style.transition =
+            "transform 0.8s ease-out, opacity 0.8s ease-out";
+          countdownEl.style.transform = "translate(-50%, -50%) scale(0.9)";
+          countdownEl.style.opacity = "0";
+          setTimeout(onDone, 900);
+        }
+        function tick() {
+          if (count > 0) {
+            showNumber(String(count), () => {
+              count--;
+              tick();
+            });
+          } else {
+            showNumber("GO!", () => {
+              countdownEl.style.transition = "none";
+              countdownEl.style.opacity = "0";
+              callback();
+            });
+          }
+        }
+        tick();
+      }
+
+      function update() {
+        if (!gameStartTime) gameStartTime = Date.now();
+
+        const elapsed = (Date.now() - gameStartTime) / 1000;
+        const remaining = Math.max(0, Math.ceil(GAME_RUNTIME - elapsed));
+
+        if (remaining !== lastRemainingTick) {
+          lastRemainingTick = remaining;
+        }
+
+        // Spawn the ribbon when RIBBON_LEAD seconds remain, if not already spawned
+        if (!ribbon && elapsed >= GAME_RUNTIME - RIBBON_LEAD) {
+          ribbon = { x: PIPE_SPAWN_X() };
+          // Clear any nets or trash that spawned ahead of the ribbon
+          nets = nets.filter((p) => p.x < ribbon.x);
+          trashItems = trashItems.filter((t) => t.x < ribbon.x);
+        }
+
+        // Move ribbon with the world
+        if (ribbon) ribbon.x -= PIPE_SPEED;
+
+        // Win: fish touches the ribbon
+        if (checkRibbonCross()) {
+          state = "won";
+          return;
+        }
+
+        frame++;
+
+        if (!ribbon && frame % BOAT_INTERVAL === 0) {
+          nets.push({
+            x: PIPE_SPAWN_X(),
+            topH: OCEAN_TOP(),
+            scored: false,
+            imgIdx: Math.floor(Math.random() * boatImgs.length),
+          });
+        }
+        for (const p of nets) {
+          p.x -= PIPE_SPEED;
+          if (!p.scored && p.x + PIPE_WIDTH < fish.x) {
+            p.scored = true;
+            score++;
+          }
+        }
+        // Keep nets on left
+        nets = nets.filter((p) => p.x + PIPE_WIDTH + 8 + 190 > 0);
+
+        if (!ribbon && frame % TRASH_INTERVAL === 0) {
+          const minY = OCEAN_TOP() + 10;
+          const maxY = GROUND_Y() - NET_H - TRASH_H - 10;
+          trashItems.push({
+            x: PIPE_SPAWN_X(),
+            y: minY + Math.random() * (maxY - minY),
+            imgIdx: Math.floor(Math.random() * trashImgs.length),
+          });
+        }
+        for (const t of trashItems) t.x -= PIPE_SPEED;
+        trashItems = trashItems.filter((t) => t.x + TRASH_W > 0);
+
+        fish.vy += GRAVITY;
+        fish.y += fish.vy;
+        const collisionResult = checkCollision();
+        if (collisionResult) {
+          deathReason = collisionResult.type;
+          deathImgIdx = collisionResult.imgIdx ?? null;
+          state = "dead";
+        }
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, GAME_W, GAME_H);
+        drawBackground();
+        nets.forEach(drawNet);
+        drawTrashItems();
+        drawRibbon(ribbon);
+        drawFish();
+        drawScore();
+      }
+
+      let animId;
+
+      function togglePause() {
+        if (state === "running") {
+          state = "paused";
+          cancelAnimationFrame(animId);
+          ctx.fillStyle = "rgba(0,0,0,0.45)";
+          ctx.fillRect(0, 0, GAME_W, GAME_H);
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 36px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("PAUSED", GAME_W / 2, GAME_H / 2);
+        } else if (state === "paused") {
+          state = "running";
+          animId = requestAnimationFrame(gameLoop);
+        }
+      }
+
+      function startGame() {
+        showScreen("game");
+        resetGame();
+        cancelAnimationFrame(animId);
+        animId = requestAnimationFrame(gameLoop);
+        startCountdown(() => {
+          state = "running";
+        });
+      }
+
+      function gameLoop() {
+        if (state === "running") {
+          update();
+          render();
+          animId = requestAnimationFrame(gameLoop);
+        } else if (state === "countdown") {
+          render();
+          animId = requestAnimationFrame(gameLoop);
+        } else if (state === "paused") {
+          // idle
+        } else if (state === "won") {
+          render();
+          winGame();
+        } else {
+          render();
+          endGame();
+        }
+      }
+
+      function endGame() {
+        cancelAnimationFrame(animId);
+        stopInfoRotation();
+        if (score > bestScore) bestScore = score;
+        document.getElementById("final-score").textContent = score;
+
+        let fact;
+        if (deathReason === "trash") {
+          const name =
+            deathImgIdx !== null ? TRASH_NAMES[deathImgIdx] : "a predator";
+          fact = `You fed ${name}, but at least you're not bycatch. Play again!`;
+          document.querySelector(".end-title").textContent = "YOU’RE DINNER";
+        } else if (deathReason === "dead") {
+          const name =
+            (fact = `You're busted, but at least you're not bycatch. Play again!`);
+          document.querySelector(".end-title").textContent = "GAME OVER";
+        } else if (deathReason === "net") {
+          fact = NET_FACTS[Math.floor(Math.random() * NET_FACTS.length)];
+          document.querySelector(".end-title").textContent =
+            "BYE, CATCH! YOU’RE BYCATCH";
+        } else {
+          fact = END_FACTS[Math.floor(Math.random() * END_FACTS.length)];
+        }
+
+        document.querySelector(".info-placeholder").textContent = fact;
+
+        setTimeout(() => showScreen("end"), 600);
+      }
+
+      function winGame() {
+        cancelAnimationFrame(animId);
+        stopInfoRotation();
+        if (score > bestScore) bestScore = score;
+        document.getElementById("win-final-score").textContent = score;
+        document.getElementById("win-fact").textContent =
+          END_FACTS[Math.floor(Math.random() * END_FACTS.length)];
+        setTimeout(() => showScreen("win"), 600);
+      }
+
+      document.getElementById("btn-start").addEventListener("click", startGame);
+      document
+        .getElementById("btn-restart")
+        .addEventListener("click", startGame);
+      document
+        .getElementById("btn-restart-win")
+        .addEventListener("click", startGame);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "p" || e.key === "P" || e.key === "Escape") togglePause();
+        if (e.key === " " || e.key === "ArrowUp") flap();
+      });
+    </script>
+  </body>
+</html>
