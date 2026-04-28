@@ -50,27 +50,29 @@
         <div class="score-label">Score</div>
         <div class="best-value" id="final-score">0</div>
       </div>
-            <div class="button-div">
-      <button class="btn btn-restart" id="btn-restart">Play Again</button>
-      <a href="http://salmonrun.marypeltola.com/" class="a-tag">
-        <button
-          class="btn btn-copy"
-          id="btn-copy"
-          onclick="
-            navigator.clipboard.writeText(`https://salmonrun.marypeltola.com/`);
-            this.textContent = 'Copied!';
-            setTimeout(() => (this.textContent = 'Share Link'), 2000);
-            event.preventDefault();
-          "
-        >
-          Share Link
-        </button>
-      </a>
-      <a href="https://marypeltola.com/" class="a-tag">
-        <button class="btn btn-learn" id="btn-learn">Learn More</button>
-      </a>
+      <div class="button-div">
+        <button class="btn btn-restart" id="btn-restart">Play Again</button>
+        <a href="http://salmonrun.marypeltola.com/" class="a-tag">
+          <button
+            class="btn btn-copy"
+            id="btn-copy"
+            onclick="
+              navigator.clipboard.writeText(
+                `https://salmonrun.marypeltola.com/`,
+              );
+              this.textContent = 'Copied!';
+              setTimeout(() => (this.textContent = 'Share Link'), 2000);
+              event.preventDefault();
+            "
+          >
+            Share Link
+          </button>
+        </a>
+        <a href="https://marypeltola.com/" class="a-tag">
+          <button class="btn btn-learn" id="btn-learn">Learn More</button>
+        </a>
       </div>
-            <canvas id="bubble-canvas-end"></canvas>
+      <canvas id="bubble-canvas-end"></canvas>
     </div>
 
     <!-- ── Win Screen ── -->
@@ -82,7 +84,7 @@
         <div class="best-value" id="win-final-score">0</div>
       </div>
       <div class="button-div">
-      <button class="btn btn-restart" id="btn-restart-win">Play Again</button>
+        <button class="btn btn-restart" id="btn-restart-win">Play Again</button>
         <a href="https://salmonrun.marypeltola.com/" class="a-tag">
           <button
             class="btn btn-copy"
@@ -104,8 +106,8 @@
             Learn More
           </button></a
         >
-        </div>
-              <canvas id="bubble-canvas-win"></canvas>
+      </div>
+      <canvas id="bubble-canvas-win"></canvas>
     </div>
 
     <script>
@@ -140,7 +142,7 @@
 
       let deathImgIdx = null;
 
-      const TRASH_NAMES = ["an orca", "a salmon shark"];
+      const TRASH_NAMES = ["an orca", "a salmon shark", "a harbor seal"];
 
       function resizeCanvas() {
         GAME_W = window.innerWidth;
@@ -462,7 +464,6 @@
 
       animateBubblesEnd();
 
-
       function drawBackground() {
         if (skyImg.complete && skyImg.naturalWidth > 0) {
           ctx.drawImage(skyImg, 0, 0, GAME_W, OCEAN_TOP());
@@ -524,7 +525,7 @@
           ctx.beginPath();
           ctx.moveTo(wireX, net.topH);
           //  WIRE Y position
-          ctx.lineTo(wireX, GROUND_Y() - (NET_H / 2));
+          ctx.lineTo(wireX, GROUND_Y() - NET_H / 2);
           ctx.strokeStyle = "#aaaaaa";
           ctx.lineWidth = 1.5;
           ctx.stroke();
@@ -543,19 +544,19 @@
       }
 
       // ── Ribbon drawing ────────────────────────────────────────────────────────────
-      // Emoji string pre-built for the vertical stack
-      const RIBBON_EMOJIS = ["🎉", "🏆", "🎊", "🥇", "🎊", "🏆", "🎉"];
-      const RIBBON_EMOJI_SIZE = 28;
-      const RIBBON_EMOJI_GAP = 8;
+      const LABEL_TEXT = "SPAWNING GROUND";
+      const LABEL_FONT_SIZE = 24;
+      const LABEL_GAP = 4; // space between letters
+      const LABEL_OFFSET_X = 12; // distance to the right of ribbon
 
       function drawRibbon(r) {
         if (!r) return;
-        const top = OCEAN_TOP();
-        const bottom = GROUND_Y() - NET_H;
-        const height = bottom - top;
-        const cx = r.x + RIBBON_W / 2;
 
-        // Alternating red/white stripe bar
+        const top = OCEAN_TOP();
+        const bottom = GROUND_Y();
+        const height = bottom - top;
+
+        // Ribbon stripes
         const stripeH = 12;
         const stripes = Math.ceil(height / stripeH);
         for (let i = 0; i < stripes; i++) {
@@ -563,17 +564,24 @@
           ctx.fillRect(r.x, top + i * stripeH, RIBBON_W, stripeH);
         }
 
-        // Vertical stack of emojis centered on the ribbon
-        ctx.font = `${RIBBON_EMOJI_SIZE}px serif`;
+        // Vertical text to the RIGHT of the ribbon
+        const chars = LABEL_TEXT.split(""); // keeps spaces too
+        ctx.font = `${LABEL_FONT_SIZE}px "Jersey 10"`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const totalEmojiH =
-          RIBBON_EMOJIS.length * (RIBBON_EMOJI_SIZE + RIBBON_EMOJI_GAP);
-        const startY = top + (height - totalEmojiH) / 2 + RIBBON_EMOJI_SIZE / 2;
-        for (let i = 0; i < RIBBON_EMOJIS.length; i++) {
-          const ey = startY + i * (RIBBON_EMOJI_SIZE + RIBBON_EMOJI_GAP);
-          if (ey > top && ey < bottom) {
-            ctx.fillText(RIBBON_EMOJIS[i], cx, ey);
+        ctx.fillStyle = "#c0c1c6";
+
+        const totalH = chars.length * (LABEL_FONT_SIZE + LABEL_GAP);
+        const startY = top + (height - totalH) / 2 + LABEL_FONT_SIZE / 2;
+
+        const textX = r.x + RIBBON_W + LABEL_OFFSET_X;
+
+        for (let i = 0; i < chars.length; i++) {
+          const ch = chars[i];
+          const y = startY + i * (LABEL_FONT_SIZE + LABEL_GAP);
+
+          if (y > top && y < bottom && ch !== " ") {
+            ctx.fillText(ch, textX, y);
           }
         }
       }
@@ -590,7 +598,11 @@
       const oceanImg = new Image();
       oceanImg.src = "./ocean.png";
 
-      const TRASH_SRCS = ["./orca-obstacle.png", "./salmon-shark.png"];
+      const TRASH_SRCS = [
+        "./orca-obstacle.png",
+        "./salmon-shark.png",
+        "./seal.png",
+      ];
       const trashImgs = TRASH_SRCS.map((src) => {
         const i = new Image();
         i.src = src;
