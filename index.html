@@ -170,7 +170,7 @@
       // Seconds until first trash
       const TRASH_INTERVAL = 100;
       const SALMON = "./salmon.png";
-      const GAME_RUNTIME = 30;
+      const GAME_RUNTIME = 5;
 
       // How many seconds before end the ribbon scrolls on
       const RIBBON_LEAD = 4;
@@ -883,8 +883,8 @@
           document.querySelector(".end-title").textContent = "Game Over";
         } else if (deathReason === "net") {
           fact = NET_FACTS[Math.floor(Math.random() * NET_FACTS.length)];
-          document.querySelector(".end-title").textContent =
-            "BYE, CATCH! YOU’RE BYCATCH";
+          document.querySelector(".end-title").innerHTML =
+            `BYE, CATCH! </br> YOU’RE BYCATCH`;
         } else {
           fact = END_FACTS[Math.floor(Math.random() * END_FACTS.length)];
         }
