@@ -226,7 +226,7 @@ canvas {
 }
 
 .score-label {
-  font-size: 1rem;
+  font-size: 1.3rem;
   color: #c0c1c6;
   text-transform: uppercase;
 
@@ -234,7 +234,7 @@ canvas {
   font-weight: 400;
   font-style: Regular;
 
-  letter-spacing: 2%;
+  letter-spacing: 1px;
   text-align: center;
   vertical-align: middle;
 }
@@ -336,7 +336,7 @@ canvas {
 .info-placeholder {
   font-family: "Jersey 10";
   font-weight: 400;
-  font-size: 1rem;
+  font-size: 1.3rem;
   max-width: 80%;
   letter-spacing: 2%;
   text-align: center;
@@ -402,6 +402,10 @@ canvas {
   }
   .end-panel {
       width: min(320px, 88vw);
+  }
+
+  .info-placeholder, .score-label {
+      font-size: 1.1rem;
   }
 }
 
