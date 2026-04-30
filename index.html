@@ -157,7 +157,7 @@
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
 
-      const GRAVITY = 0.3;
+      const GRAVITY = 0.25;
       const FLAP_VEL = -5;
       const PIPE_SPEED = 3;
       const PIPE_WIDTH = 52;
@@ -172,7 +172,7 @@
       // Seconds until first trash
       const TRASH_INTERVAL = 100;
       const SALMON = "./salmon.png";
-      const GAME_RUNTIME = 30;
+      const GAME_RUNTIME = 5;
 
       // How many seconds before end the ribbon scrolls on
       const RIBBON_LEAD = 4;
@@ -546,7 +546,7 @@
       }
 
       // ── Ribbon drawing ────────────────────────────────────────────────────────────
-      const LABEL_TEXT = "SPAWNING GROUND";
+      const LABEL_TEXT = "YOU MADE IT";
       const LABEL_FONT_SIZE = 24;
       const LABEL_GAP = 4; // space between letters
       const LABEL_OFFSET_X = 12; // distance to the right of ribbon
